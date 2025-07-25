@@ -173,26 +173,35 @@ npx hardhat run script/deploy-academic-system.js --network inj_testnet
 - `deploy-inj-testnet.js` - 智能增量部署，跳过已部署合约，支持重试机制
 - `verify-deployment.js` - 验证部署状态和合约功能
 - `deploy-academic-system.js` - 完整系统部署
+- `deploy-local.js` - 本地测试网部署
 
 ## 使用示例
 
-### 交互脚本
+### 功能脚本
 
 ```bash
 # 运行完整的系统演示
 npx hardhat run script/interact-academic-system.js --network localhost
+
+# 创建测试数据
+npx hardhat run script/write-test-data.js --network inj_testnet
+
+# 查询测试数据
+npx hardhat run script/query-test-data.js --network inj_testnet
+
+# 期刊管理功能演示
+npx hardhat run script/journal-management-simple.js --network inj_testnet
 ```
 
 ### 主要功能演示
 
-1. **创建期刊**
-2. **注册审稿人**
-3. **创建论文NFT**
-4. **提交论文到期刊**
-5. **分配审稿人**
-6. **提交审稿意见**
-7. **分配审稿奖励**
-8. **发表论文**
+1. **期刊管理**：创建期刊、设置投稿费用、管理编辑权限
+2. **审稿人系统**：注册审稿人、等级管理、代币奖励
+3. **论文NFT**：创建论文NFT、版权管理、引用关系
+4. **研究数据NFT**：数据资产化、访问控制、收益分配
+5. **评审流程**：投稿管理、审稿人分配、评审意见收集
+6. **奖励机制**：基于质量和及时性的代币分配
+7. **治理功能**：DAO提案、投票决策、参数调整
 
 ## 测试状态
 
@@ -278,7 +287,7 @@ npx hardhat run script/verify-deployment.js --network inj_testnet
 ### 项目结构
 
 ```
-hardhat-inj/
+ReviewDAO_EVM/
 ├── contracts/                 # 智能合约源码
 │   ├── JournalManager.sol    # 期刊管理合约
 │   ├── ResearchData.sol      # 研究数据NFT合约
@@ -286,9 +295,15 @@ hardhat-inj/
 │   ├── ReviewerDAO.sol       # 审稿人DAO合约
 │   └── paperNFT.sol         # 论文NFT合约
 ├── script/                   # 部署和交互脚本
-│   ├── deploy-academic-system.js  # 完整系统部署
-│   ├── deploy-local.js            # 本地部署
-│   └── interact-academic-system.js # 系统交互演示
+│   ├── deploy-academic-system.js     # 完整系统部署
+│   ├── deploy-inj-testnet.js         # Injective测试网增量部署
+│   ├── deploy-local.js               # 本地部署
+│   ├── verify-deployment.js          # 部署验证
+│   ├── interact-academic-system.js   # 系统交互演示
+│   ├── write-test-data.js            # 创建测试数据
+│   ├── query-test-data.js            # 查询测试数据
+│   ├── journal-management-simple.js  # 期刊管理功能演示
+│   └── inj-testnet-deployments.json  # 部署状态记录
 ├── test/                     # 测试文件
 │   ├── AcademicSystem.test.js     # 主要集成测试
 │   ├── JournalManager.test.js     # 期刊管理测试
@@ -301,18 +316,33 @@ hardhat-inj/
 └── README.md               # 项目文档
 ```
 
-### 添加新功能
+### 脚本功能说明
 
-1. 在 `contracts/` 目录下创建新合约
-2. 编写相应的测试用例
-3. 更新部署脚本
-4. 更新交互脚本
+| 脚本文件 | 功能描述 | 使用场景 |
+|---------|---------|----------|
+| `deploy-academic-system.js` | 完整系统部署 | 首次部署或完全重新部署 |
+| `deploy-inj-testnet.js` | 增量部署到测试网 | 测试网部署，支持断点续传 |
+| `deploy-local.js` | 本地测试网部署 | 本地开发和测试 |
+| `verify-deployment.js` | 验证部署状态 | 检查合约部署是否成功 |
+| `interact-academic-system.js` | 系统功能演示 | 完整流程演示和测试 |
+| `write-test-data.js` | 创建测试数据 | 生成测试用的期刊、论文等数据 |
+| `query-test-data.js` | 查询测试数据 | 验证数据创建和查询功能 |
+| `journal-management-simple.js` | 期刊管理演示 | 期刊创建、编辑、配置等功能 |
+
+### 开发工作流
+
+1. **合约开发**：在 `contracts/` 目录下创建新合约
+2. **测试编写**：在 `test/` 目录下编写对应测试用例
+3. **部署脚本**：更新相关部署脚本
+4. **功能验证**：编写交互脚本验证功能
+5. **文档更新**：更新README和相关文档
 
 ### 代码规范
 
-- 遵循 Solidity 最佳实践
-- 使用 NatSpec 注释格式
-- 保持代码简洁和可读性
+- **Solidity**：遵循最佳实践，使用NatSpec注释
+- **JavaScript**：使用ES6+语法，保持代码简洁
+- **测试**：确保100%测试覆盖率
+- **文档**：及时更新README和代码注释
 
 ## 贡献指南
 
@@ -332,14 +362,26 @@ hardhat-inj/
 - 邮箱: [chord244@gmail.com]
 - 项目链接: [https://github.com/ReviewDAO/ReviewDAO_EVM]
 
-## 部署问题排查
+## 常见问题排查
 
-如果在部署过程中遇到问题，可以尝试以下解决方案：
+### 部署问题
 
-1. **增加Gas限制**：合约较复杂，可能需要更多的gas来部署
-2. **检查合约大小**：确保合约大小在限制范围内（24KB）
-3. **检查网络连接**：确保与Injective测试网的连接正常
-4. **检查账户余额**：确保部署账户有足够的测试币
+1. **Gas不足**：增加Gas限制，合约较复杂需要更多gas
+2. **合约大小超限**：确保合约大小在24KB限制内
+3. **网络连接**：检查与Injective测试网的连接状态
+4. **余额不足**：确保部署账户有足够的测试币
+
+### 功能问题
+
+1. **查询失败**：确保合约地址正确，网络配置无误
+2. **权限错误**：检查账户是否有相应的操作权限
+3. **交易失败**：查看具体错误信息，检查参数是否正确
+
+### 测试网络
+
+- **获取测试币**：访问 [Injective Testnet Faucet](https://testnet.faucet.injective.network/)
+- **区块浏览器**：[Injective Testnet Explorer](https://testnet.explorer.injective.network/)
+- **RPC端点**：`https://k8s.testnet.json-rpc.injective.network/`
 
 ## 技术特点
 

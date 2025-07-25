@@ -373,6 +373,14 @@ contract JournalManager is AccessControl, ReentrancyGuard {
     function getJournalEditors(uint256 _journalId) external view returns (address[] memory) {
         return journalEditors[_journalId];
     }
+
+    /**
+     * @dev 获取期刊总数
+     * @return 期刊总数
+     */
+    function getJournalCount() external view returns (uint256) {
+        return _journalIdCounter;
+    }
     
     /**
      * @dev 检查是否为期刊所有者

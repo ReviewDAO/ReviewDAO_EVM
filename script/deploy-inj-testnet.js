@@ -144,14 +144,19 @@ async function main() {
     console.log("\n🔗 检查合约关联设置...");
     
     try {
-        // 检查 JournalManager 是否已设置 ReviewProcess
-        const currentReviewProcess = await journalManager.reviewProcessAddress();
-        if (currentReviewProcess === ethers.ZeroAddress) {
-            console.log("📝 设置 JournalManager -> ReviewProcess 关联...");
-            await journalManager.setReviewProcess(await reviewProcess.getAddress());
-            console.log("✅ JournalManager -> ReviewProcess 关联设置完成");
+        // 检查 JournalManager 是否已设置合约地址
+        const currentReviewProcess = await journalManager.reviewProcess();
+        const currentReviewerDAO = await journalManager.reviewerDAO();
+        
+        if (currentReviewProcess === ethers.ZeroAddress || currentReviewerDAO === ethers.ZeroAddress) {
+            console.log("📝 设置 JournalManager 合约地址...");
+            await journalManager.setContractAddresses(
+                await reviewProcess.getAddress(),
+                await reviewerDAO.getAddress()
+            );
+            console.log("✅ JournalManager 合约地址设置完成");
         } else {
-            console.log("✓ JournalManager -> ReviewProcess 关联已设置");
+            console.log("✓ JournalManager 合约地址已设置");
         }
         
         // 检查 ReviewerDAO 是否已授予 JournalManager EDITOR_ROLE
@@ -166,8 +171,8 @@ async function main() {
         }
         
         // 检查 ReviewProcess 是否已设置 ReviewerDAO
-        const currentReviewerDAO = await reviewProcess.reviewerDAOAddress();
-        if (currentReviewerDAO === ethers.ZeroAddress) {
+        const processReviewerDAO = await reviewProcess.reviewerDAO();
+        if (processReviewerDAO === ethers.ZeroAddress) {
             console.log("📝 设置 ReviewProcess -> ReviewerDAO 关联...");
             await reviewProcess.setReviewerDAO(await reviewerDAO.getAddress());
             console.log("✅ ReviewProcess -> ReviewerDAO 关联设置完成");

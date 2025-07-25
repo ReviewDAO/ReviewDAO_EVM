@@ -474,6 +474,14 @@ contract ReviewerDAO is ERC20, ERC20Burnable, AccessControlEnumerable {
     }
     
     /**
+     * @dev 获取提案总数
+     * @return 提案总数
+     */
+    function getProposalCount() external view returns (uint256) {
+        return _proposalIdCounter;
+    }
+    
+    /**
      * @dev 检查地址是否已对提案投票
      * @param _proposalId 提案ID
      * @param _voter 投票者地址
