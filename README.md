@@ -330,7 +330,7 @@ hardhat-inj/
 
 - 项目维护者: [chord233]
 - 邮箱: [chord244@gmail.com]
-- 项目链接: [https://github.com/yourusername/academic-evaluation-system]
+- 项目链接: [https://github.com/ReviewDAO/ReviewDAO_EVM]
 
 ## 部署问题排查
 
