@@ -1,15 +1,18 @@
-# Remix compiler artifacts
-**/artifacts/
-**/artifacts/**
+/node_modules
+/.env
+/package-lock.json
 
-# Remix plugin state folders
-deps/
-states/
+# Hardhat files
+/cache
+/artifacts
 
-# Debug info
-*.dbg.json
-*.tsbuildinfo
+# TypeChain files
+/typechain
+/typechain-types
 
-# Optional
-.env
-.env.local
+# solidity-coverage files
+/coverage
+/coverage.json
+
+# Hardhat Ignition default folder for deployments against a local node
+ignition/deployments/chain-31337
