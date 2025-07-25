@@ -1,0 +1,35 @@
+{
+  "name": "hardhat-inj",
+  "private": true,
+  "version": "0.0.0",
+  "description": "A sample hardhat project for working on the Injective EVM Testnet",
+  "main": "index.js",
+  "repository": "https://github.com/injective-dev/hardhat-inj",
+  "scripts": {
+    "test": "hardhat test",
+    "test:research": "hardhat test test/ResearchData.test.js",
+    "deploy": "hardhat run script/deploy.js --network inj_testnet",
+    "deploy:local": "hardhat run script/deploy-local.js --network localhost",
+    "deploy:debug": "hardhat run script/deploy-debug.js --network inj_testnet",
+    "deploy:simple": "hardhat run script/deploy-simple.js --network inj_testnet",
+    "node": "hardhat node",
+    "interact": "hardhat run script/interact.js --network inj_testnet",
+    "interact:local": "hardhat run script/interact.js --network localhost"
+  },
+  "keywords": [
+    "hardhat",
+    "injective",
+    "evm",
+    "demo"
+  ],
+  "author": "bguiz",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "6.0.0",
+    "dotenv": "17.0.1",
+    "hardhat": "2.25.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0"
+  }
+}
