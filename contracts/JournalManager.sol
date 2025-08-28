@@ -269,6 +269,25 @@ contract JournalManager is AccessControl, ReentrancyGuard {
     }
     
     /**
+     * @dev 更新投稿状态
+     * @param _submissionId 投稿ID
+     * @param _newStatus 新状态
+     */
+    function updateSubmissionStatus(uint256 _submissionId, ReviewProcess.SubmissionStatus _newStatus) external {
+        // 获取投稿信息
+        (, , uint256 journalId, , , , , ) = reviewProcess.submissions(_submissionId);
+        require(
+            _isJournalOwner(journalId, msg.sender) || 
+            hasRole(ADMIN_ROLE, msg.sender) ||
+            (_isJournalEditor(journalId, msg.sender) && hasRole(EDITOR_ROLE, msg.sender)),
+            "Not authorized"
+        );
+        
+        // 调用ReviewProcess合约更新状态
+        reviewProcess.updateSubmissionStatus(_submissionId, _newStatus);
+    }
+    
+    /**
      * @dev 发表论文
      * @param _submissionId 投稿ID
      * @param _volumeInfo 卷期信息

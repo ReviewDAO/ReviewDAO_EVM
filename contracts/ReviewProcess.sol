@@ -63,6 +63,8 @@ contract ReviewProcess {
     mapping(address => uint256[]) public authorSubmissions; // 作者地址 => 投稿ID列表
     mapping(address => uint256[]) public reviewerAssignments; // 审稿人地址 => 投稿ID列表
     mapping(uint256 => uint256) public paperToSubmission; // 论文ID => 投稿ID
+    mapping(uint256 => mapping(address => bool)) public reviewerSubmitted; // 投稿ID => 审稿人 => 是否已提交
+    mapping(uint256 => uint256) public submissionCompletedReviews; // 投稿ID => 已完成审稿数量
     
     // 事件
     event SubmissionCreated(uint256 submissionId, address author, uint256 paperId, uint256 journalId);
@@ -168,6 +170,7 @@ contract ReviewProcess {
         onlyAssignedReviewer(_submissionId) 
     {
         require(_decision != ReviewDecision.None, "Invalid review decision");
+        require(!reviewerSubmitted[_submissionId][msg.sender], "Review already submitted");
         
         uint256 reviewId = _reviewIdCounter;
         _reviewIdCounter++;
@@ -182,6 +185,10 @@ contract ReviewProcess {
         
         submissionReviews[_submissionId].push(reviewId);
         
+        // 更新优化映射
+        reviewerSubmitted[_submissionId][msg.sender] = true;
+        submissionCompletedReviews[_submissionId]++;
+        
         emit ReviewSubmitted(reviewId, msg.sender, _submissionId, _decision);
         
         // 检查是否所有审稿人都已提交意见，如果是则更新投稿状态
@@ -194,28 +201,14 @@ contract ReviewProcess {
      */
     function _updateSubmissionStatus(uint256 _submissionId) internal {
         Submission storage submission = submissions[_submissionId];
-        uint256[] memory reviewIds = submissionReviews[_submissionId];
         
-        // 如果没有审稿意见，不更新状态
-        if (reviewIds.length == 0) return;
-        
-        // 检查是否所有审稿人都已提交意见
-        bool allReviewsCompleted = true;
-        for (uint i = 0; i < submission.reviewers.length; i++) {
-            bool reviewerSubmitted = false;
-            for (uint j = 0; j < reviewIds.length; j++) {
-                if (reviews[reviewIds[j]].reviewer == submission.reviewers[i]) {
-                    reviewerSubmitted = true;
-                    break;
-                }
-            }
-            if (!reviewerSubmitted) {
-                allReviewsCompleted = false;
-                break;
-            }
+        // 使用优化的计数器检查是否所有审稿人都已提交意见
+        if (submissionCompletedReviews[_submissionId] < submission.reviewers.length) {
+            return; // 还有审稿人未提交意见
         }
         
-        if (!allReviewsCompleted) return;
+        uint256[] memory reviewIds = submissionReviews[_submissionId];
+        if (reviewIds.length == 0) return;
         
         // 统计审稿决定
         uint acceptCount = 0;
@@ -285,6 +278,12 @@ contract ReviewProcess {
         
         // 更新论文内容
         paperNFT.updateDataItem(paperId, _newIpfsHash, _newMetadataURI);
+        
+        // 重置审稿状态映射，因为需要重新审稿
+        submissionCompletedReviews[_submissionId] = 0;
+        for (uint i = 0; i < submission.reviewers.length; i++) {
+            reviewerSubmitted[_submissionId][submission.reviewers[i]] = false;
+        }
         
         // 更新投稿信息
         submission.revisionCount++;
