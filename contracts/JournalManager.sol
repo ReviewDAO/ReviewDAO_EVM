@@ -55,6 +55,7 @@ contract JournalManager is AccessControl, ReentrancyGuard {
     mapping(string => bool) public journalNameExists; // 期刊名称是否存在
     mapping(uint256 => mapping(address => bool)) public submissionReviewers; // 投稿ID => 审稿人 => 是否已分配
     mapping(uint256 => address[]) public journalEditors; // 期刊ID => 编辑列表
+    mapping(address => uint256) public editorJournalCount; // 编辑 => 担任编辑的期刊数量
     
     // 计数器
     uint256 private _journalIdCounter;
@@ -149,11 +150,19 @@ contract JournalManager is AccessControl, ReentrancyGuard {
         require(_isJournalOwner(_journalId, msg.sender) || hasRole(ADMIN_ROLE, msg.sender), "Not authorized");
         require(_editor != address(0), "Invalid editor address");
         
-        // 授予编辑角色
-        _grantRole(EDITOR_ROLE, _editor);
+        // 检查编辑是否已经在该期刊中
+        require(!_isJournalEditor(_journalId, _editor), "Editor already exists in this journal");
+        
+        // 授予编辑角色（如果还没有的话）
+        if (!hasRole(EDITOR_ROLE, _editor)) {
+            _grantRole(EDITOR_ROLE, _editor);
+        }
         
         // 添加到期刊编辑列表
         journalEditors[_journalId].push(_editor);
+        
+        // 增加编辑的期刊计数
+        editorJournalCount[_editor]++;
         
         emit EditorAdded(_journalId, _editor);
     }
@@ -165,6 +174,7 @@ contract JournalManager is AccessControl, ReentrancyGuard {
      */
     function removeEditor(uint256 _journalId, address _editor) external {
         require(_isJournalOwner(_journalId, msg.sender) || hasRole(ADMIN_ROLE, msg.sender), "Not authorized");
+        require(_isJournalEditor(_journalId, _editor), "Editor not found in this journal");
         
         // 从期刊编辑列表中移除
         address[] storage editors = journalEditors[_journalId];
@@ -176,21 +186,11 @@ contract JournalManager is AccessControl, ReentrancyGuard {
             }
         }
         
-        // 检查是否还是其他期刊的编辑
-        bool isStillEditor = false;
-        for (uint256 i = 0; i < _journalIdCounter; i++) {
-            address[] memory journalEditorsArray = journalEditors[i];
-            for (uint256 j = 0; j < journalEditorsArray.length; j++) {
-                if (journalEditorsArray[j] == _editor) {
-                    isStillEditor = true;
-                    break;
-                }
-            }
-            if (isStillEditor) break;
-        }
+        // 减少编辑的期刊计数
+        editorJournalCount[_editor]--;
         
         // 如果不再是任何期刊的编辑，撤销编辑角色
-        if (!isStillEditor) {
+        if (editorJournalCount[_editor] == 0) {
             _revokeRole(EDITOR_ROLE, _editor);
         }
         
